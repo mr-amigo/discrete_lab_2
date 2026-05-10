@@ -141,8 +141,43 @@ class RegexFSM:
 
         return new_state
 
-    def check_string(self):
-        pass  # Implement
+    def check_string(self, input_str: str) -> bool:
+        chain = self.curr_state.next_states
+
+        def go(idx, i):
+            if idx >= len(chain):
+                return i == len(input_str)
+            st = chain[idx]
+
+            if isinstance(st, StarState):
+                inner = st.next_states[0]
+                if go(idx + 1, i):
+                    return True
+                count = i
+                while count < len(input_str) and inner.check_self(input_str[count]):
+                    count += 1
+                    if go(idx + 1, count):
+                        return True
+                return False
+
+            if isinstance(st, PlusState):
+                inner = st.next_states[0]
+                if i >= len(input_str) or not inner.check_self(input_str[i]):
+                    return False
+                count = i + 1
+                if go(idx + 1, count):
+                    return True
+                while count < len(input_str) and inner.check_self(input_str[count]):
+                    count += 1
+                    if go(idx + 1, count):
+                        return True
+                return False
+
+            if i < len(input_str) and st.check_self(input_str[i]):
+                return go(idx + 1, i + 1)
+            return False
+
+        return go(0, 0)
 
 
 if __name__ == "__main__":
