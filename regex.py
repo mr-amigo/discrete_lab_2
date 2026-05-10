@@ -33,7 +33,11 @@ class StartState(State):
 
 
 class TerminationState(State):
-    pass  # Implement
+    def __init__(self):
+        super().__init__()
+
+    def check_self(self, char):
+        return False
 
 
 class DotState(State):
@@ -47,7 +51,7 @@ class DotState(State):
         super().__init__()
 
     def check_self(self, char: str):
-        pass  # Implement
+        return True
 
 
 class AsciiState(State):
@@ -59,10 +63,12 @@ class AsciiState(State):
     curr_sym = ""
 
     def __init__(self, symbol: str) -> None:
-        pass  # Implement
+        super().__init__()
+        self.curr_sym = symbol
+        self.next_states = []
 
     def check_self(self, curr_char: str) -> State | Exception:
-        pass  # Implement
+        return curr_char == self.curr_sym
 
 
 class StarState(State):
@@ -70,7 +76,8 @@ class StarState(State):
     next_states: list[State] = []
 
     def __init__(self, checking_state: State):
-        pass  # Implement
+        super().__init__()
+        self.next_states = [checking_state]
 
     def check_self(self, char):
         for state in self.next_states:
@@ -84,10 +91,15 @@ class PlusState(State):
     next_states: list[State] = []
 
     def __init__(self, checking_state: State):
-        pass  # Implement
+        super().__init__()
+        self.next_states = [checking_state]
 
     def check_self(self, char):
-        pass  # Implement
+        for state in self.next_states:
+            if state.check_self(char):
+                return True
+
+        return False
 
 
 class RegexFSM:
@@ -113,9 +125,13 @@ class RegexFSM:
             case next_token if next_token == "*":
                 new_state = StarState(tmp_next_state)
                 # here you have to think, how to do it.
+                if tmp_next_state in prev_state.next_states:
+                    prev_state.next_states.remove(tmp_next_state)
 
             case next_token if next_token == "+":
-                pass  # Implement
+                new_state = PlusState(tmp_next_state)
+                if tmp_next_state in prev_state.next_states:
+                    prev_state.next_states.remove(tmp_next_state)
 
             case next_token if next_token.isascii():
                 new_state = AsciiState(next_token)
